@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Alerts</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#eef1f6;
+}
+
+/* NAVBAR */
+
+.navbar{
+height:60px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+box-shadow:0px 2px 8px rgba(0,0,0,0.08);
+}
+
+.logo{
+font-weight:600;
+}
+
+.menu a{
+margin:0 15px;
+text-decoration:none;
+color:#555;
+font-size:14px;
+}
+
+.menu a.active{
+color:#e53935;
+font-weight:600;
+}
+
+/* PAGE CONTAINER */
+
+.container{
+padding:35px 60px;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.subtitle{
+font-size:14px;
+color:#777;
+}
+
+/* CREATE BUTTON */
+
+.create-btn{
+background:#e53935;
+border:none;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* FILTER BAR */
+
+.filters{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+margin-bottom:20px;
+}
+
+select,button{
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
+}
+
+/* ALERT CARD */
+
+.alert-card{
+background:white;
+border-radius:10px;
+padding:20px;
+margin-bottom:15px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+display:flex;
+justify-content:space-between;
+}
+
+/* LEFT SIDE */
+
+.alert-info{
+max-width:80%;
+}
+
+/* BADGES */
+
+.badge{
+padding:3px 8px;
+border-radius:12px;
+font-size:11px;
+margin-left:6px;
+}
+
+.high{
+background:#ffe0b2;
+}
+
+.active{
+background:#c8e6c9;
+}
+
+.inactive{
+background:#e0e0e0;
+}
+
+/* SMALL TEXT */
+
+.meta{
+font-size:12px;
+color:#777;
+margin-top:5px;
+}
+
+/* RIGHT BUTTON */
+
+.deactivate{
+background:#ffcdd2;
+border:none;
+padding:6px 12px;
+border-radius:6px;
+cursor:pointer;
+height:32px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<div class="logo">
+Disaster Management System
+</div>
+
+<div class="menu">
+
+<a href="dashboard.html">Dashboard</a>
+<a href="incidents.html">Incidents</a>
+<a href="report.html">Report</a>
+<a href="resources.html">Resources</a>
+<a href="volunteers.html">Volunteers</a>
+<a class="active">Alerts</a>
+
+</div>
+
+<!-- ✅ FIXED USER SECTION -->
+<div id="userSection">
+<img id="userImage" src="default.png" style="width:30px;height:30px;border-radius:50%;vertical-align:middle;">
+<span id="userName">User</span> |
+<a href="login.html" onclick="logout()">Sign out</a>
+</div>
+
+</div>
+
+
+
+<!-- PAGE CONTENT -->
+
+<div class="container">
+
+
+<div class="header">
+
+<div>
+
+<h2>Alerts</h2>
+
+<div class="subtitle">
+Manage emergency alerts and notifications
+</div>
+
+</div>
+
+
+<button class="create-btn" onclick="createAlert()">
++ Create Alert
+</button>
+
+</div>
+
+
+
+<!-- FILTER BAR -->
+
+<div class="filters">
+
+<select>
+<option>All Types</option>
+<option>Cyclone</option>
+<option>Flood</option>
+<option>Earthquake</option>
+</select>
+
+<button onclick="clearFilters()">
+Clear Filters
+</button>
+
+</div>
+
+
+
+<!-- ALERT CARD 1 -->
+
+<div class="alert-card">
+
+<div class="alert-info">
+
+<b>Cyclone</b>
+
+<span class="badge high">high</span>
+
+<span class="badge active">Active</span>
+
+<div class="meta">
+Created: 10/16/2025, 10:24:37 AM
+</div>
+
+<div class="meta">
+Target Area: 10km radius from (13.0824, 80.2744)
+</div>
+
+</div>
+
+
+<button class="deactivate" onclick="deactivateAlert(this)">
+Deactivate
+</button>
+
+</div>
+
+
+
+<!-- ALERT CARD 2 -->
+
+<div class="alert-card">
+
+<div class="alert-info">
+
+<b>Trapped inside a building</b>
+
+<span class="badge high">high</span>
+
+<span class="badge inactive">Inactive</span>
+
+<div class="meta">
+When flood hit I was in my house and now I am trapped on the top of the building.
+</div>
+
+<div class="meta">
+Created: 10/16/2025, 10:16:59 AM | Expires: 10/15/2025, 10:05:00 AM
+</div>
+
+<div class="meta">
+Target Area: 10km radius from (13.0824, 80.2744)
+</div>
+
+</div>
+
+
+<button class="deactivate" onclick="deactivateAlert(this)">
+Deactivate
+</button>
+
+</div>
+
+
+</div>
+
+
+<script>
+
+/* ✅ LOGIN CHECK */
+if(!localStorage.getItem("loggedUserName")){
+    window.location.href = "login.html";
+}
+
+/* ✅ SET USER DATA */
+document.getElementById("userName").innerText =
+    localStorage.getItem("loggedUserName") || "User";
+
+document.getElementById("userImage").src =
+    localStorage.getItem("loggedUserImage") || "default.png";
+
+/* LOGOUT */
+function logout(){
+    localStorage.clear();
+}
+
+
+/* GLOBAL ALERT STORAGE */
+var alerts = [];
+
+/* LOAD ALERTS FROM DATABASE */
+function loadStoredAlerts(){
+
+fetch("http://localhost:8080/api/alerts")
+
+.then(res=>res.json())
+
+.then(data=>{
+alerts = data;
+renderAlerts(alerts);
+});
+
+}
+
+/* DISPLAY ALERTS */
+function renderAlerts(list){
+
+document.querySelectorAll(".dynamic-alert").forEach(el=>el.remove());
+
+const container = document.querySelector(".container");
+
+list.forEach(alert=>{
+
+let alertCard = document.createElement("div");
+
+alertCard.className = "alert-card dynamic-alert";
+
+alertCard.innerHTML = `
+<div class="alert-info">
+<b>${alert.title}</b>
+<span class="badge high">${alert.severity}</span>
+<span class="badge ${alert.status === "Active" ? "active" : "inactive"}">
+${alert.status}
+</span>
+<div class="meta">Created: ${alert.createdAt}</div>
+<div class="meta">Target Area: ${alert.targetArea}</div>
+</div>
+<button class="deactivate" onclick="deactivateAlert(this)">Deactivate</button>
+`;
+
+container.appendChild(alertCard);
+
+});
+
+}
+
+/* CREATE ALERT */
+/* CREATE ALERT */
+
+function createAlert(){
+
+let title = prompt("Enter Alert Title");
+if(!title) return;
+
+let severity = prompt("Enter Severity (Low / Medium / High)");
+if(!severity) return;
+
+let message = prompt("Enter Alert Message");
+if(!message) return;
+
+/* RADIUS INPUT */
+let radius = prompt("Enter Radius in KM");
+if(!radius) return;
+
+/* GET CURRENT LOCATION */
+
+navigator.geolocation.getCurrentPosition(function(pos){
+
+let lat = pos.coords.latitude.toFixed(4);
+let lng = pos.coords.longitude.toFixed(4);
+
+/* AUTO TARGET AREA */
+let targetArea = radius + "km radius from (" + lat + ", " + lng + ")";
+
+fetch("http://localhost:8080/api/alerts",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+title:title,
+severity:severity,
+message:message,
+targetArea:targetArea
+
+})
+
+})
+.then(res=>res.json())
+.then(()=>{
+
+alert("Alert created successfully 🚨");
+
+loadStoredAlerts();
+
+});
+
+},
+function(){
+
+alert("Unable to fetch current location");
+
+});
+
+}
+/* DEACTIVATE BUTTON */
+function deactivateAlert(btn){
+btn.innerText = "Deactivated";
+btn.style.background = "#ddd";
+btn.disabled = true;
+}
+
+/* CLEAR FILTERS */
+function clearFilters(){
+location.reload();
+}
+
+/* PAGE LOAD */
+window.onload = loadStoredAlerts;
+
+</script>
+
+</body>
+</html>

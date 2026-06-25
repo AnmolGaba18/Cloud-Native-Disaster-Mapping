@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#eef1f6;
+}
+
+.navbar{
+height:60px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+box-shadow:0px 2px 8px rgba(0,0,0,0.08);
+}
+
+.logo{
+font-weight:600;
+color:#333;
+}
+
+.menu a{
+margin:0 15px;
+text-decoration:none;
+color:#555;
+font-size:14px;
+}
+
+.menu a.active{
+color:#e53935;
+font-weight:600;
+}
+
+.container{
+padding:35px 60px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.report-btn{
+background:#e53935;
+border:none;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.alert-banner{
+background:#fdecea;
+padding:15px;
+border-radius:6px;
+margin-bottom:20px;
+color:#b71c1c;
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+margin-bottom:25px;
+}
+
+.card{
+background:white;
+padding:18px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+}
+
+.card h3{
+margin:5px 0;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1.2fr;
+gap:25px;
+}
+
+.list{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+}
+
+.item{
+padding:12px 0;
+border-bottom:1px solid #eee;
+}
+
+.tag{
+font-size:11px;
+padding:3px 8px;
+border-radius:5px;
+background:#ffe082;
+margin-left:8px;
+}
+
+.map-card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+}
+
+#map{
+height:300px;
+border-radius:8px;
+}
+
+</style>
+</head>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+<script>
+
+var socket = new SockJS('http://localhost:8080/incident-websocket');
+var stompClient = Stomp.over(socket);
+
+stompClient.connect({}, function () {
+
+    stompClient.subscribe('/topic/incidents', function (incident) {
+
+        var data = JSON.parse(incident.body);
+
+        alert("New Incident: " + data.title);
+
+        location.reload();
+
+    });
+
+});
+
+</script>
+
+<body>
+
+<div class="navbar">
+<div class="logo">Disaster Management System</div>
+
+<div class="menu">
+<a class="active" href="dashboard.html">Dashboard</a>
+<a href="incidents.html">Incidents</a>
+<a href="report.html">Report</a>
+<a href="resources.html">Resources</a>
+<a href="volunteers.html">Volunteers</a>
+<a href="alerts.html">Alerts</a>
+</div>
+
+<div id="userSection"></div>
+
+</div>
+
+<div class="container">
+
+<div class="header">
+
+<div>
+<h2>Dashboard</h2>
+<small>Emergency response overview</small>
+</div>
+
+<button class="report-btn"
+onclick="location.href='report.html'">
++ Report Incident
+</button>
+
+</div>
+
+<div class="alert-banner" id="alertBanner">
+Active Alerts  
+<strong>No active alerts</strong>
+</div>
+
+<div class="stats">
+
+<div class="card">
+Total Incidents
+<h3 id="incidentCount">0</h3>
+<small id="incidentNew">0 verified</small>
+</div>
+
+<div class="card">
+Available Resources
+<h3 id="resourceCount">0</h3>
+</div>
+
+<div class="card">
+Active Volunteers
+<h3 id="volunteerCount">0</h3>
+</div>
+
+<div class="card">
+Active Alerts
+<h3 id="alertCount">0</h3>
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="list">
+<h3>Recent Incidents</h3>
+<div id="recentIncidents"></div>
+</div>
+
+<div class="map-card">
+<h3>Incident Map</h3>
+<div id="map"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+/* SESSION */
+const name = localStorage.getItem("loggedUserName");
+
+if(!name){
+window.location.href="login.html";
+}
+
+/* USER SECTION */
+
+let image = localStorage.getItem("loggedUserImage");
+
+if(!image || image === "null"){
+image = "default.png";
+}
+
+document.getElementById("userSection").innerHTML =
+
+"<img src='" + image + "' " +
+"style='width:32px;height:32px;border-radius:50%;vertical-align:middle;margin-right:8px;'>"
+
++ name +
+
+" | <a href='login.html' onclick='logoutUser()'>Sign out</a>";
+
+/* LOAD INCIDENTS */
+
+fetch("http://localhost:8080/api/incidents")
+.then(res=>res.json())
+.then(data=>{
+
+/* MAP */
+
+const map=L.map('map').setView([20,78],4);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+.addTo(map);
+
+/* ICONS */
+
+const floodIcon=L.icon({
+iconUrl:"https://cdn-icons-png.flaticon.com/512/414/414974.png",
+iconSize:[25,25]
+});
+
+const cycloneIcon=L.icon({
+iconUrl:"https://cdn-icons-png.flaticon.com/512/1116/1116453.png",
+iconSize:[25,25]
+});
+
+/* VERIFIED INCIDENTS ONLY */
+
+let verifiedCount = 0;
+
+data.forEach(function(i){
+
+if(i.status === "REJECTED") return;
+
+verifiedCount++;
+
+if(i.latitude && i.longitude){
+
+L.marker([
+parseFloat(i.latitude),
+parseFloat(i.longitude)
+])
+.addTo(map)
+.bindPopup("🚗 "+i.title);
+/* RECENT INCIDENTS */
+
+document.getElementById("recentIncidents").innerHTML += `
+
+<div class="item">
+${i.title}
+<span class="tag">${i.status}</span>
+</div>
+
+`;
+}
+
+});
+
+/* UPDATE COUNT */
+
+document.getElementById("incidentCount").innerText = verifiedCount;
+document.getElementById("incidentNew").innerText = verifiedCount + " verified";
+
+/* EARTHQUAKE API */
+
+fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson")
+.then(res=>res.json())
+.then(eq=>{
+
+eq.features.forEach(e=>{
+
+let c=e.geometry.coordinates;
+
+L.circleMarker([c[1],c[0]],{
+color:"red",
+radius:6
+})
+.addTo(map)
+.bindPopup("🌍 Earthquake M "+e.properties.mag);
+
+});
+
+});
+
+/* FLOOD MARKERS */
+
+let floodPoints = [
+[19.07,72.87],
+[22.57,88.36],
+[26.85,80.94]
+];
+
+floodPoints.forEach(p=>{
+
+L.marker(p,{icon:floodIcon})
+.addTo(map)
+.bindPopup("🌊 Flood Area");
+
+});
+
+/* CYCLONE MARKERS */
+
+let cyclonePoints = [
+[13.08,80.27],
+[15.91,79.74],
+[21.14,79.08]
+];
+
+cyclonePoints.forEach(p=>{
+
+L.marker(p,{icon:cycloneIcon})
+.addTo(map)
+.bindPopup("🌪️ Cyclone Zone");
+
+});
+
+/* REAL RESOURCES */
+
+/* FETCH RESOURCES */
+
+fetch("http://localhost:8080/api/resources")
+.then(res=>res.json())
+.then(resources=>{
+
+let resourceCount = 0;
+
+resources.forEach(function(r){
+
+resourceCount++;
+
+let color = "green";
+
+if(r.type === "Vehicle"){
+color = "blue";
+}
+
+if(r.type === "Personnel"){
+color = "orange";
+}
+
+/* USE REAL COORDINATES */
+
+let lat = parseFloat(r.latitude);
+let lng = parseFloat(r.longitude);
+
+L.circleMarker([lat,lng],{
+color:color,
+radius:6
+})
+.addTo(map)
+.bindPopup(
+"🚑 " + r.name + "<br>" +
+r.type + "<br>" +
+r.location
+);
+
+});
+
+document.getElementById("resourceCount").innerText = resourceCount;
+
+});
+
+/* RESOURCE MARKERS */
+
+let resourceCount = 0;
+
+resources.forEach(function(r){
+
+resourceCount++;
+
+let color = "green";
+
+if(r.type === "Vehicle"){
+color = "blue";
+}
+
+if(r.type === "Personnel"){
+color = "orange";
+}
+
+/* RANDOM DEMO LOCATIONS */
+
+let lat = 20 + Math.random() * 8;
+let lng = 72 + Math.random() * 10;
+
+L.circleMarker([lat,lng],{
+color:color,
+radius:6
+})
+.addTo(map)
+.bindPopup(
+"🚑 " + r.name + "<br>" +
+r.type + "<br>" +
+r.location
+);
+
+});
+
+/* UPDATE RESOURCE COUNT */
+
+document.getElementById("resourceCount").innerText = resourceCount;
+/* UPDATE RESOURCE COUNT */
+
+document.getElementById("resourceCount").innerText = resourceCount;
+
+});   /* ✅ IMPORTANT FIX */
+
+/* VOLUNTEERS */
+
+fetch("http://localhost:8080/api/volunteers")
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("volunteerCount").innerText=data.length;
+});
+
+/* ALERTS */
+
+fetch("http://localhost:8080/api/alerts")
+.then(res=>res.json())
+.then(data=>{
+
+document.getElementById("alertCount").innerText=data.length;
+
+if(data.length>0){
+
+document.getElementById("alertBanner").innerHTML=
+"Active Alerts <strong>"+data[0].title+"</strong>";
+
+}
+
+});
+
+</script>
+
+</body>
+</html>

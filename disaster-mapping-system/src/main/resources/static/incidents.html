@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Incidents</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#eef1f6;
+}
+
+/* NAVBAR */
+
+.navbar{
+height:60px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+box-shadow:0px 2px 8px rgba(0,0,0,0.08);
+}
+
+.logo{
+font-weight:600;
+}
+
+.menu a{
+margin:0 15px;
+text-decoration:none;
+color:#555;
+font-size:14px;
+}
+
+.menu a.active{
+color:#e53935;
+font-weight:600;
+}
+
+/* CONTAINER */
+
+.container{
+padding:35px 60px;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.subtitle{
+font-size:14px;
+color:#777;
+}
+
+/* BUTTON */
+
+.report-btn{
+background:#e53935;
+border:none;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* FILTER BAR */
+
+.filters{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+display:grid;
+grid-template-columns:2fr 1fr 1fr 1fr;
+gap:15px;
+margin-bottom:20px;
+}
+
+input, select{
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
+}
+
+/* TABLE CARD */
+
+.table-card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+}
+
+/* TABLE */
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+text-align:left;
+font-size:13px;
+color:#777;
+padding:10px 0;
+}
+
+td{
+padding:14px 0;
+border-top:1px solid #eee;
+font-size:14px;
+}
+
+/* BADGES */
+
+.badge{
+padding:4px 10px;
+border-radius:12px;
+font-size:12px;
+}
+
+.high{
+background:#ffe0b2;
+}
+
+.medium{
+background:#fff3cd;
+}
+
+.critical{
+background:#ffcdd2;
+}
+
+.reported{
+background:#e3f2fd;
+}
+
+.responding{
+background:#ffe0b2;
+}
+
+/* DETAILS LINK */
+
+.details{
+color:#2979ff;
+cursor:pointer;
+text-decoration:none;
+font-size:13px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<div class="logo">
+Disaster Management System
+</div>
+
+<div class="menu">
+
+<a href="dashboard.html">Dashboard</a>
+<a class="active">Incidents</a>
+<a href="report.html">Report</a>
+<a href="resources.html">Resources</a>
+<a href="volunteers.html">Volunteers</a>
+<a href="alerts.html">Alerts</a>
+
+</div>
+
+<!-- ✅ FIXED USER SECTION -->
+<div id="userSection">
+<img id="userImage" src="default.png" style="width:30px;height:30px;border-radius:50%;vertical-align:middle;">
+<span id="userName">User</span> |
+<a href="login.html" onclick="logout()">Sign out</a>
+</div>
+
+</div>
+
+
+
+<!-- CONTENT -->
+
+<div class="container">
+
+
+<div class="header">
+
+<div>
+<h2>Incidents</h2>
+<div class="subtitle">
+Manage emergency incidents and responses
+</div>
+</div>
+
+<button class="report-btn"
+onclick="location.href='report.html'">
++ Report Incident
+</button>
+
+</div>
+
+
+
+<!-- FILTER BAR -->
+
+<div class="filters">
+
+<input id="searchBox" placeholder="Search incidents...">
+
+<select id="statusFilter">
+<option>All Statuses</option>
+<option>Reported</option>
+<option>Responding</option>
+<option>Resolved</option>
+</select>
+
+<select id="typeFilter">
+<option>All Types</option>
+<option>Flood</option>
+<option>Earthquake</option>
+<option>Storm</option>
+</select>
+
+<button onclick="clearFilters()">Clear Filters</button>
+
+</div>
+
+
+
+<!-- INCIDENT TABLE -->
+
+<div class="table-card">
+
+<table>
+
+<thead>
+<tr>
+<th>INCIDENT</th>
+<th>TYPE</th>
+<th>SEVERITY</th>
+<th>STATUS</th>
+<th>LOCATION</th>
+<th>REPORTED</th>
+<th></th>
+</tr>
+</thead>
+
+
+<tbody id="incidentTableBody">
+
+<tr>
+<td>
+<b>BigFoot Earthquake</b><br>
+Its urgent
+</td>
+<td>Earthquake</td>
+<td><span class="badge high">high</span></td>
+<td><span class="badge reported">reported</span></td>
+<td>Chennai</td>
+<td>10/18/2025</td>
+<td><a class="details" onclick="viewDetails()">View Details</a></td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+</div>
+
+
+<script>
+
+/* ✅ LOGIN CHECK */
+if(!localStorage.getItem("loggedUserName")){
+    window.location.href = "login.html";
+}
+
+/* ✅ SET USER DATA */
+document.getElementById("userName").innerText =
+    localStorage.getItem("loggedUserName") || "User";
+
+document.getElementById("userImage").src =
+    localStorage.getItem("loggedUserImage") || "default.png";
+
+/* LOGOUT */
+function logout(){
+    localStorage.clear();
+}
+
+
+/* GLOBAL INCIDENT STORAGE */
+var incidents = [];
+
+/* LOAD INCIDENTS */
+function loadIncidents(){
+
+fetch("http://localhost:8080/api/incidents")
+.then(res=>res.json())
+.then(data=>{
+incidents = data;
+renderIncidents(incidents);
+});
+
+}
+
+/* DISPLAY INCIDENTS */
+function renderIncidents(list){
+
+var tableBody = document.getElementById("incidentTableBody");
+tableBody.innerHTML = "";
+
+if(list.length === 0){
+tableBody.innerHTML = "<tr><td colspan='7'>No incidents found</td></tr>";
+return;
+}
+
+list.forEach(function(i){
+
+var row = document.createElement("tr");
+
+row.innerHTML = `
+<td><b>${i.title}</b><br>${i.description}</td>
+<td>${i.type}</td>
+<td><span class="badge ${i.severity.toLowerCase()}">${i.severity}</span></td>
+<td><span class="badge reported">${i.status}</span></td>
+<td>${i.location ?? "Not specified"}</td>
+<td>${i.date}</td>
+<td><a class="details" onclick='viewDetails(${JSON.stringify(i)})'>View Details</a></td>
+`;
+
+tableBody.appendChild(row);
+
+});
+
+}
+
+/* VIEW DETAILS */
+function viewDetails(incident){
+alert(
+"Incident Details\n\n" +
+"Title: " + incident.title + "\n" +
+"Type: " + incident.type + "\n" +
+"Severity: " + incident.severity + "\n" +
+"Status: " + incident.status + "\n" +
+"Location: " + (incident.location ?? "Not specified") + "\n" +
+"Description: " + incident.description + "\n" +
+"Date: " + incident.date
+);
+}
+
+/* SEARCH */
+document.getElementById("searchBox").addEventListener("keyup",function(){
+
+var keyword = this.value.toLowerCase();
+
+var filtered = incidents.filter(i =>
+i.title.toLowerCase().includes(keyword) ||
+i.description.toLowerCase().includes(keyword) ||
+(i.location ?? "").toLowerCase().includes(keyword)
+);
+
+renderIncidents(filtered);
+
+});
+
+/* FILTERS */
+document.getElementById("statusFilter").addEventListener("change",applyFilters);
+document.getElementById("typeFilter").addEventListener("change",applyFilters);
+
+function applyFilters(){
+
+var status = document.getElementById("statusFilter").value.toLowerCase();
+var type = document.getElementById("typeFilter").value.toLowerCase();
+
+var filtered = incidents.filter(i => {
+
+var statusMatch =
+status === "all statuses" ||
+i.status.toLowerCase() === status;
+
+var typeMatch =
+type === "all types" ||
+i.type.toLowerCase() === type;
+
+return statusMatch && typeMatch;
+
+});
+
+renderIncidents(filtered);
+
+}
+
+/* CLEAR FILTERS */
+function clearFilters(){
+document.getElementById("searchBox").value = "";
+document.getElementById("statusFilter").selectedIndex = 0;
+document.getElementById("typeFilter").selectedIndex = 0;
+renderIncidents(incidents);
+}
+
+/* PAGE LOAD */
+window.onload = loadIncidents;
+
+</script>
+
+</body>
+</html>

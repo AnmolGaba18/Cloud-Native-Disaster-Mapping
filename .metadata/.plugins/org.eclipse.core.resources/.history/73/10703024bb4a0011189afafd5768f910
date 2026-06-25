@@ -1,0 +1,88 @@
+package example.demo.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import example.demo.model.Incident;
+import example.demo.repository.IncidentRepository;
+
+@Service
+public class IncidentService {
+
+    @Autowired
+    private IncidentRepository repository;
+
+    public Incident saveIncident(Incident incident) {
+
+        int score = 0;
+
+        /* 🔥 1. Location check */
+        if (incident.getLatitude() != null && !incident.getLatitude().isEmpty()
+                && incident.getLongitude() != null && !incident.getLongitude().isEmpty()) {
+
+            score += 30;
+
+        } else {
+
+            score -= 30;
+        }
+
+        /* 🔥 2. Title validation */
+        if (incident.getTitle() != null &&
+                incident.getTitle().length() > 5) {
+
+            score += 20;
+
+        } else {
+
+            score -= 20;
+        }
+
+        /* 🔥 3. Description validation */
+        if (incident.getDescription() != null &&
+                incident.getDescription().length() > 10) {
+
+            score += 20;
+        }
+
+        /* 🔥 4. Duplicate detection */
+        List<Incident> duplicates =
+                repository.findByLatitudeAndLongitude(
+                        incident.getLatitude(),
+                        incident.getLongitude());
+
+        if (!duplicates.isEmpty()) {
+
+            score += 30;
+        }
+
+        /* 🔥 SAVE TRUST SCORE */
+        incident.setTrustScore(score);
+
+        /* 🔥 FINAL STATUS */
+
+        if(score >= 70){
+
+            incident.setStatus("VERIFIED");
+
+        }
+        else if(score >= 40){
+
+            incident.setStatus("PENDING");
+
+        }
+        else{
+
+            incident.setStatus("REJECTED");
+        }
+
+        return repository.save(incident);
+    }
+
+    public List<Incident> getAllIncidents() {
+
+        return repository.findAll();
+    }
+}

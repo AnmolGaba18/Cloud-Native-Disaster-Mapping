@@ -1,0 +1,111 @@
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#5f5cff,#60c0c0);
+font-family:'Segoe UI';
+margin:0;
+}
+
+.dashboard{
+width:1050px;
+height:620px;
+background:#f7f7fb;
+border-radius:25px;
+display:flex;
+box-shadow:0 40px 80px rgba(0,0,0,0.25);
+}
+
+.sidebar{
+width:240px;
+background:#1b1742;
+border-radius:25px 0 0 25px;
+padding:35px 25px;
+color:white;
+}
+
+.profile{
+text-align:center;
+margin-bottom:40px;
+}
+
+.profile img{
+width:70px;
+border-radius:50%;
+margin-bottom:10px;
+}
+
+.menu a{
+display:block;
+padding:14px;
+color:white;
+text-decoration:none;
+opacity:.8;
+}
+
+.menu a:hover,
+.menu .active{
+opacity:1;
+font-weight:600;
+}
+
+.content{
+flex:1;
+padding:35px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+}
+
+.search{
+width:220px;
+padding:8px 15px;
+border-radius:15px;
+border:none;
+background:#ececf4;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:18px;
+margin-bottom:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #ddd;
+}
+
+.primary{
+background:#5f5cff;
+color:white;
+border:none;
+padding:12px;
+border-radius:8px;
+cursor:pointer;
+}
+
+input,select,textarea{
+width:100%;
+padding:10px;
+margin-bottom:12px;
+border-radius:6px;
+border:1px solid #ddd;
+}

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Resources</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#eef1f6;
+}
+
+/* NAVBAR */
+
+.navbar{
+height:60px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+box-shadow:0px 2px 8px rgba(0,0,0,0.08);
+}
+
+.logo{
+font-weight:600;
+}
+
+.menu a{
+margin:0 15px;
+text-decoration:none;
+color:#555;
+font-size:14px;
+}
+
+.menu a.active{
+color:#2b7cff;
+font-weight:600;
+}
+
+/* MAIN CONTAINER */
+
+.container{
+padding:35px 60px;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.subtitle{
+font-size:14px;
+color:#777;
+}
+
+/* BUTTON */
+
+.add-btn{
+background:#2b7cff;
+border:none;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* FILTER ROW */
+
+.filters{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:15px;
+margin-bottom:20px;
+}
+
+select,button{
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
+}
+
+/* TABLE CARD */
+
+.table-card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+}
+
+/* TABLE */
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+text-align:left;
+font-size:13px;
+color:#777;
+padding:10px 0;
+}
+
+td{
+padding:14px 0;
+border-top:1px solid #eee;
+font-size:14px;
+}
+
+/* BADGE */
+
+.badge{
+background:#d4edda;
+color:#2e7d32;
+padding:4px 10px;
+border-radius:12px;
+font-size:12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<div class="logo">
+Disaster Management System
+</div>
+
+<div class="menu">
+
+<a href="dashboard.html">Dashboard</a>
+<a href="incidents.html">Incidents</a>
+<a href="report.html">Report</a>
+<a class="active">Resources</a>
+<a href="volunteers.html">Volunteers</a>
+<a href="alerts.html">Alerts</a>
+
+</div>
+
+<div id="userSection">
+<img id="userImage" src="default.png" style="width:30px;height:30px;border-radius:50%;vertical-align:middle;">
+<span id="userName">User</span> |
+<a href="login.html" onclick="logout()">Sign out</a>
+</div>
+
+</div>
+
+<!-- CONTENT -->
+
+<div class="container">
+
+<div class="header">
+
+<div>
+
+<h2>Resources</h2>
+
+<div class="subtitle">
+Manage emergency response resources
+</div>
+
+</div>
+
+<button class="add-btn" onclick="addResource()">
++ Add Resource
+</button>
+
+</div>
+
+<!-- FILTERS -->
+
+<div class="filters">
+
+<select id="typeFilter">
+<option>All Types</option>
+<option>Shelter</option>
+<option>Vehicle</option>
+<option>Personnel</option>
+</select>
+
+<select id="statusFilter">
+<option>All Statuses</option>
+<option>Available</option>
+<option>Busy</option>
+</select>
+
+<button onclick="clearFilters()">
+Clear Filters
+</button>
+
+</div>
+
+<!-- TABLE -->
+
+<div class="table-card">
+
+<table>
+
+<thead>
+<tr>
+<th>RESOURCE</th>
+<th>TYPE</th>
+<th>QUANTITY</th>
+<th>STATUS</th>
+<th>CONTACT</th>
+<th>LOCATION</th>
+</tr>
+</thead>
+
+<tbody id="resourceTableBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+/* LOGIN CHECK */
+if(!localStorage.getItem("loggedUserName")){
+    window.location.href = "login.html";
+}
+
+/* USER DATA */
+document.getElementById("userName").innerText =
+    localStorage.getItem("loggedUserName") || "User";
+
+document.getElementById("userImage").src =
+    localStorage.getItem("loggedUserImage") || "default.png";
+
+/* LOGOUT */
+function logout(){
+    localStorage.clear();
+}
+
+/* TABLE BODY */
+var tableBody = document.getElementById("resourceTableBody");
+
+/* LOAD RESOURCES FROM BACKEND */
+
+/* REAL RESOURCES */
+
+const resources = [
+
+{
+name:"AIIMS Delhi",
+type:"Shelter",
+quantity:"120 / 120",
+contact:"+91 11-26588500",
+location:"Delhi",
+status:"Available"
+},
+
+{
+name:"Apollo Chennai Ambulance",
+type:"Vehicle",
+quantity:"12 / 12",
+contact:"+91 44-28290200",
+location:"Chennai",
+status:"Available"
+},
+
+{
+name:"NDRF Rescue Team",
+type:"Personnel",
+quantity:"40 / 40",
+contact:"+91 9876543210",
+location:"Mumbai",
+status:"Available"
+},
+
+{
+name:"Hyderabad Relief Camp",
+type:"Shelter",
+quantity:"80 / 80",
+contact:"+91 9123456780",
+location:"Hyderabad",
+status:"Available"
+},
+
+{
+name:"Emergency Ambulance Unit",
+type:"Vehicle",
+quantity:"8 / 8",
+contact:"+91 9988776655",
+location:"Pune",
+status:"Busy"
+},
+
+{
+name:"Disaster Medical Team",
+type:"Personnel",
+quantity:"25 / 25",
+contact:"+91 8899776655",
+location:"Kolkata",
+status:"Available"
+}
+
+];
+
+tableBody.innerHTML="";
+
+resources.forEach(function(r){
+
+var row=document.createElement("tr");
+
+row.innerHTML=`
+<td>${r.name}</td>
+<td>${r.type}</td>
+<td>${r.quantity}</td>
+<td><span class="badge">${r.status}</span></td>
+<td>${r.contact}</td>
+<td>${r.location}</td>
+`;
+
+tableBody.appendChild(row);
+
+});
+
+/* ADD RESOURCE */
+
+function addResource(){
+
+let name = prompt("Enter resource name");
+if(!name) return;
+
+let type = prompt("Enter type (Shelter / Vehicle / Personnel)");
+if(!type) return;
+
+let quantity = prompt("Enter quantity (example: 5 / 5)");
+if(!quantity) return;
+
+let contact = prompt("Enter contact person & number");
+if(!contact) return;
+
+let location = prompt("Enter location");
+if(!location) return;
+
+fetch("http://localhost:8080/api/resources", {
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name:name,
+type:type,
+quantity:quantity,
+contact:contact,
+location:location
+})
+
+})
+.then(res=>res.json())
+.then(()=>{
+alert("Resource added successfully ✅");
+location.reload();
+});
+
+}
+
+/* FILTER FUNCTION */
+
+document.getElementById("typeFilter").addEventListener("change",applyFilters);
+document.getElementById("statusFilter").addEventListener("change",applyFilters);
+
+function applyFilters(){
+
+var typeValue=document.getElementById("typeFilter").value.toLowerCase();
+var statusValue=document.getElementById("statusFilter").value.toLowerCase();
+
+var rows=tableBody.getElementsByTagName("tr");
+
+for(var i=0;i<rows.length;i++){
+
+var text=rows[i].innerText.toLowerCase();
+
+var typeMatch=(typeValue==="all types")||text.includes(typeValue);
+var statusMatch=(statusValue==="all statuses")||text.includes(statusValue);
+
+rows[i].style.display=(typeMatch && statusMatch)?"":"none";
+
+}
+
+}
+
+/* CLEAR FILTERS */
+
+function clearFilters(){
+
+document.getElementById("typeFilter").selectedIndex=0;
+document.getElementById("statusFilter").selectedIndex=0;
+
+var rows=tableBody.getElementsByTagName("tr");
+
+for(var i=0;i<rows.length;i++){
+rows[i].style.display="";
+}
+
+}
+
+</script>
+
+</body>
+</html>

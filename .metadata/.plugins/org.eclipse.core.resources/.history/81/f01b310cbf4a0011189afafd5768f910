@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Volunteers</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#eef1f6;
+}
+
+.navbar{
+height:60px;
+background:white;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 40px;
+box-shadow:0px 2px 8px rgba(0,0,0,0.08);
+}
+
+.logo{
+font-weight:600;
+}
+
+.menu a{
+margin:0 15px;
+text-decoration:none;
+color:#555;
+font-size:14px;
+}
+
+.menu a.active{
+color:#7b4ce2;
+font-weight:600;
+}
+
+.container{
+padding:35px 60px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.subtitle{
+font-size:14px;
+color:#777;
+}
+
+.register-btn{
+background:#2e7d32;
+border:none;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.filters{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:15px;
+margin-bottom:20px;
+}
+
+select,button{
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
+}
+
+.empty-card{
+background:white;
+height:220px;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,0.05);
+color:#888;
+font-size:14px;
+}
+
+.icon{
+font-size:32px;
+margin-bottom:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+
+<div class="logo">
+Disaster Management System
+</div>
+
+<div class="menu">
+
+<a href="dashboard.html">Dashboard</a>
+<a href="incidents.html">Incidents</a>
+<a href="report.html">Report</a>
+<a href="resources.html">Resources</a>
+<a class="active">Volunteers</a>
+<a href="alerts.html">Alerts</a>
+
+</div>
+
+<!-- ✅ FIXED USER SECTION -->
+<div id="userSection">
+<img id="userImage" src="default.png" style="width:30px;height:30px;border-radius:50%;vertical-align:middle;">
+<span id="userName">User</span> |
+<a href="login.html" onclick="logout()">Sign out</a>
+</div>
+
+</div>
+
+
+<div class="container">
+
+<div class="header">
+
+<div>
+
+<h2>Volunteers</h2>
+
+<div class="subtitle">
+Manage volunteer resources and assignments
+</div>
+
+</div>
+
+<button class="register-btn" onclick="registerVolunteer()">
++ Register as Volunteer
+</button>
+
+</div>
+
+
+<div class="filters">
+
+<select id="availabilityFilter">
+<option>All Volunteers</option>
+<option>Available</option>
+<option>Assigned</option>
+</select>
+
+<select id="skillFilter">
+<option>All Skills</option>
+<option>Medical</option>
+<option>Rescue</option>
+<option>Logistics</option>
+</select>
+
+<button onclick="clearFilters()">
+Clear Filters
+</button>
+
+</div>
+
+
+<div class="empty-card" id="emptyState">
+
+<table id="volunteerTable" style="width:100%; border-collapse:collapse;">
+
+<thead>
+
+<tr style="border-bottom:1px solid #ddd; text-align:left;">
+
+<th style="padding:12px;">Name</th>
+<th style="padding:12px;">Skill</th>
+<th style="padding:12px;">Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="volunteerTableBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+/* ✅ LOGIN CHECK */
+if(!localStorage.getItem("loggedUserName")){
+    window.location.href = "login.html";
+}
+
+/* ✅ SET USER DATA */
+document.getElementById("userName").innerText =
+    localStorage.getItem("loggedUserName") || "User";
+
+document.getElementById("userImage").src =
+    localStorage.getItem("loggedUserImage") || "default.png";
+
+/* LOGOUT */
+function logout(){
+    localStorage.clear();
+}
+
+
+/* GLOBAL STORAGE */
+var volunteers = [];
+
+/* LOAD VOLUNTEERS */
+function loadVolunteers(){
+
+fetch("http://localhost:8080/api/volunteers")
+.then(res=>res.json())
+.then(data=>{
+volunteers = data;
+renderVolunteers(volunteers);
+});
+
+}
+
+/* DISPLAY */
+/* DISPLAY */
+
+function renderVolunteers(list){
+
+const tableBody =
+document.getElementById("volunteerTableBody");
+
+tableBody.innerHTML = "";
+
+if(list.length === 0){
+
+tableBody.innerHTML = `
+<tr>
+<td colspan="3" style="padding:20px;text-align:center;color:#777;">
+No volunteers found
+</td>
+</tr>
+`;
+
+return;
+}
+
+list.forEach(v=>{
+
+let row = document.createElement("tr");
+
+row.style.borderBottom = "1px solid #eee";
+row.style.height = "65px";
+
+let statusColor = "#2e7d32";
+
+if(v.availability &&
+v.availability.toLowerCase() === "assigned"){
+
+statusColor = "#e53935";
+
+}
+
+row.innerHTML = `
+
+<td style="padding:18px 14px;">
+${v.name}
+</td>
+
+<td style="padding:18px 14px;">
+${v.skill}
+</td>
+
+<td style="padding:18px 14px;">
+<span style="
+background:${statusColor};
+color:white;
+padding:4px 10px;
+border-radius:5px;
+font-size:12px;
+">
+${v.availability}
+</span>
+</td>
+
+`;
+
+tableBody.appendChild(row);
+
+});
+
+}
+/* REGISTER */
+/* REGISTER */
+
+function registerVolunteer(){
+
+let name = prompt("Enter Volunteer Name");
+if(!name) return;
+
+let skill = prompt("Enter Skill (Medical / Rescue / Logistics)");
+if(!skill) return;
+
+/* STATUS */
+
+let availability = prompt("Enter Status (Available / Assigned)");
+
+if(!availability){
+availability = "Available";
+}
+
+fetch("http://localhost:8080/api/volunteers",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+name:name,
+skill:skill,
+availability:availability
+
+})
+
+})
+.then(res=>res.json())
+.then(()=>{
+
+alert("Volunteer registered successfully ✅");
+
+loadVolunteers();
+
+});
+
+}
+
+/* FILTER */
+document.getElementById("availabilityFilter").addEventListener("change",applyFilters);
+document.getElementById("skillFilter").addEventListener("change",applyFilters);
+
+function applyFilters(){
+
+var availabilityValue=document.getElementById("availabilityFilter").value.toLowerCase();
+var skillValue=document.getElementById("skillFilter").value.toLowerCase();
+
+var filtered=volunteers.filter(v=>{
+
+	var availabilityMatch =
+	availabilityValue==="all volunteers" ||
+	(v.availability &&
+	v.availability.toLowerCase()===availabilityValue);
+
+var skillMatch =
+skillValue==="all skills" ||
+v.skill.toLowerCase()===skillValue;
+
+return availabilityMatch && skillMatch;
+
+});
+
+renderVolunteers(filtered);
+
+}
+
+/* CLEAR */
+function clearFilters(){
+
+document.getElementById("availabilityFilter").selectedIndex=0;
+document.getElementById("skillFilter").selectedIndex=0;
+
+renderVolunteers(volunteers);
+
+}
+
+/* PAGE LOAD */
+window.onload=loadVolunteers;
+
+</script>
+
+</body>
+</html>

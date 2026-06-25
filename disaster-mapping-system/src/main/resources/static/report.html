@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Report Incident</title>
+
+<style>
+body{margin:0;font-family:Segoe UI;background:#eef1f6;}
+.navbar{height:60px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 40px;box-shadow:0px 2px 8px rgba(0,0,0,0.08);}
+.logo{font-weight:600;}
+.menu a{margin:0 15px;text-decoration:none;color:#555;font-size:14px;}
+.menu a.active{color:#e53935;font-weight:600;}
+.wrapper{padding:40px 0;display:flex;justify-content:center;}
+.card{width:720px;background:white;padding:35px;border-radius:10px;box-shadow:0px 2px 6px rgba(0,0,0,0.06);}
+h2{margin-bottom:5px;}
+.subtitle{font-size:14px;color:#777;margin-bottom:25px;}
+label{font-size:13px;display:block;margin-bottom:6px;margin-top:18px;}
+input,select{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;font-size:14px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+.location-btn{margin-top:10px;background:#e6e9f0;border:none;padding:7px 12px;border-radius:5px;cursor:pointer;font-size:13px;}
+.footer{display:flex;justify-content:flex-end;gap:15px;margin-top:30px;}
+.cancel{background:#e6e6e6;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;}
+.submit{background:#e53935;border:none;color:white;padding:10px 18px;border-radius:6px;cursor:pointer;}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+<div class="logo">Disaster Management System</div>
+
+<div class="menu">
+<a href="dashboard.html">Dashboard</a>
+<a href="incidents.html">Incidents</a>
+<a class="active">Report</a>
+<a href="resources.html">Resources</a>
+<a href="volunteers.html">Volunteers</a>
+<a href="alerts.html">Alerts</a>
+</div>
+
+<div id="userSection">
+<img id="userImage" src="default.png" style="width:30px;height:30px;border-radius:50%;vertical-align:middle;">
+<span id="userName">User</span> |
+<a href="login.html" onclick="logout()">Sign out</a>
+</div>
+</div>
+
+
+<div class="wrapper">
+<div class="card">
+
+<h2>Report Incident</h2>
+
+<div class="subtitle">
+Report an emergency or incident that requires attention
+</div>
+
+<label>Incident Title *</label>
+<input id="title" placeholder="Enter Title">
+
+<div class="row">
+<div>
+<label>Incident Type *</label>
+<select id="type">
+<option>Other</option>
+<option>Flood</option>
+<option>Earthquake</option>
+<option>Accident</option>
+</select>
+</div>
+
+<div>
+<label>Severity *</label>
+<select id="severity">
+<option>Low</option>
+<option selected>Medium</option>
+<option>High</option>
+<option>Critical</option>
+</select>
+</div>	
+</div>
+
+<label>Location (Auto-detected) *</label>
+<div class="row">
+<input id="latitude" placeholder="Latitude" readonly>
+<input id="longitude" placeholder="Longitude" readonly>
+</div>
+
+<button class="location-btn" onclick="getLocation()">Use Current Location</button>
+
+<label>Contact Number (Optional)</label>
+<input id="contact" placeholder="Enter phone number">
+
+<label>Images (Optional)</label>
+<input type="file">
+
+<div class="footer">
+<button class="cancel" onclick="location.href='dashboard.html'">Cancel</button>
+<button class="submit" onclick="submitIncident()">Report Incident</button>
+</div>
+
+</div>
+</div>
+
+
+<script>
+
+/* LOGIN CHECK */
+if(!localStorage.getItem("loggedUserName")){
+    window.location.href = "login.html";
+}
+
+/* SET USER DATA */
+document.getElementById("userName").innerText =
+    localStorage.getItem("loggedUserName") || "User";
+
+document.getElementById("userImage").src =
+    localStorage.getItem("loggedUserImage") || "default.png";
+
+/* LOGOUT */
+function logout(){
+    localStorage.clear();
+}
+
+/* LOCATION (FINAL FIXED) */
+function getLocation(){
+
+    console.log("Trying to get location...");
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        function(pos){
+            console.log("Location success");
+
+            document.getElementById("latitude").value = pos.coords.latitude;
+            document.getElementById("longitude").value = pos.coords.longitude;
+        },
+        function(err){
+            console.log("Location error:", err);
+
+            if(err.code === 1){
+                alert("Location permission denied. Please allow it from browser settings.");
+            } else if(err.code === 2){
+                alert("Location unavailable.");
+            } else {
+                alert("Unable to fetch location.");
+            }
+        }
+    );
+}
+
+/* AUTO LOAD (FIXED METHOD) */
+document.addEventListener("DOMContentLoaded", function(){
+    getLocation();
+});
+
+/* SUBMIT INCIDENT */
+/* SUBMIT INCIDENT */
+
+function submitIncident(){
+
+    if(!document.getElementById("title").value){
+        alert("Please enter Incident Title");
+        return;
+    }
+
+    if(!document.getElementById("latitude").value){
+        alert("Location not available. Please allow location.");
+        return;
+    }
+
+    const incidentData = {
+
+        title: document.getElementById("title").value,
+
+        type: document.getElementById("type").value,
+
+        severity: document.getElementById("severity").value,
+
+        latitude: document.getElementById("latitude").value,
+
+        longitude: document.getElementById("longitude").value,
+
+        status: "REPORTED",
+
+        date: new Date().toLocaleDateString()
+
+    };
+
+    fetch("http://localhost:8080/api/incidents", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(incidentData)
+
+    })
+    .then(res => {
+
+        if(!res.ok){
+            throw new Error("Failed to save incident");
+        }
+
+        return res.json();
+
+    })
+
+    .then(() => {
+
+        alert("Incident saved successfully ✅");
+
+        location.href = "incidents.html";
+
+    })
+
+    .catch(err => {
+
+        console.log(err);
+
+        alert("Error saving incident");
+
+    });
+
+}
+</script>
+</body>
+</html>
